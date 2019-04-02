@@ -29,14 +29,14 @@ CPU: 4 核
     istio 命令行工具就像 kubernetes 的命令行工具一样，可以从终端执行一些 istio 的操作。命令行工具在 `istio-1.1.0/bin/` 目录中，bin 目录中的 istioctl 添加到环境变量中即可使用
 
     ```sh
-    chmod +x istio-1.1.0/bin/istioctl && cp istio-1.1.0/bin/istioctl /usr/local/bin/istioctl
+    chmod +x istio-1.1.1/bin/istioctl && cp istio-1.1.1/bin/istioctl /usr/local/bin/istioctl
     ```
 
 3. 安装 istio
 
     进入 istio 安装文件夹
     ```sh
-    cd istio-1.1.0
+    cd istio-1.1.1
     ```
 
     添加 CRDs 到 kubernetes API-server
