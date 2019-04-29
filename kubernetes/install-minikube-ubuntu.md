@@ -1,4 +1,4 @@
-# 安装 kubernetes (minikube)
+# ubuntu 使用 minikube 搭建 kubernetes 环境
 
 [参考网站](https://yq.aliyun.com/articles/221687)
 
