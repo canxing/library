@@ -32,13 +32,13 @@ hello-page 服务必须注入 istio。
 ```sh
 kubectl create ns hello-page
 kubectl label ns hello-page istio-injection=enabled
-kubectl apply -f hello-page.yaml -n hello-page
+kubectl apply -f yaml/grayscale-release/hello-page.yaml -n hello-page
 
 kubectl create ns hello-1
-kubectl apply -f hello-1.yaml -n hello-1
+kubectl apply -f yaml/grayscale-release/hello-1.yaml -n hello-1
 
 kubectl create ns hello-2
-kubectl apply -f hello-2.yaml -n hello-2
+kubectl apply -f yaml/grayscale-release/hello-2.yaml -n hello-2
 ```
 
 ##### 百分比分配
@@ -46,7 +46,7 @@ kubectl apply -f hello-2.yaml -n hello-2
 执行下面命令，将 90% 的流量分配给 hello-1，10% 的流量分配给 hello-2
 
 ```sh
-kubectl apply -f internal/virtual-service-v2-10.yaml -n hello-page
+kubectl apply -f yaml/grayscale-release/internal/virtual-service-v2-10.yaml -n hello-page
 ```
 
 hello-virtual-service.yaml 文件中定义了一个虚拟服务该虚拟服务的 host 是 hello.com 也就是 hello-page 请求 hello 服务的域名，该服务有两个目标主机，分别是位于 hello-1 和 hello-2 命名空间中的 hello 服务，并且设置了连接的端口，接着使用 weight 为 hello-1 和 hello-2 设置流量，如下 hello.hello-1.svc.cluster.local 分配了 90% 的流量，hello.hello-2.svc.cluster.local 分配了 10% 的流量。
@@ -78,7 +78,7 @@ spec:
 使用下面命令，将带有 `user:test` 请求头的流量分配给 hello-1，不带有 `user:test` 请求头的流量分配给 hello-2
 
 ```sh
-kubectl apply -f internal/virtual-service-test-v1.yaml -n hello-page
+kubectl apply -f yaml/grayscale-release/internal/virtual-service-test-v1.yaml -n hello-page
 ```
 
 接着通过链接 `http://<cluster-ip>:<hello-page-port>/page?name=test` 访问的所有流量都会流入 hello-1。
@@ -113,10 +113,10 @@ match:
 ##### 环境清理
 
 ```sh
-kubectl delete -f internal/virtual-service-test-v1.yaml -n hello-page
-kubectl delete -f hello-page.yaml -n hello-page
-kubectl delete -f hello-1.yaml -n hello-1
-kubectl delete -f hello-2.yaml -n hello-2
+kubectl delete -f yaml/grayscale-release/internal/virtual-service-test-v1.yaml -n hello-page
+kubectl delete -f yaml/grayscale-release/hello-page.yaml -n hello-page
+kubectl delete -f yaml/grayscale-release/hello-1.yaml -n hello-1
+kubectl delete -f yaml/grayscale-release/hello-2.yaml -n hello-2
 
 kubectl delete ns hello-page
 kubectl delete ns hello-1
@@ -130,7 +130,7 @@ kubectl delete ns hello-2
 ```sh
 kubectl create ns hello-page
 kubectl label ns hello-page istio-injection=enabled
-kubectl apply -f hello-page.yaml -n hello-page
+kubectl apply -f yaml/grayscale-release/hello-page.yaml -n hello-page
 
 docker run --name hello-1 -d -p 43990:8080 hello-1:latest
 docker run --name hello-2 -d -p 43991:8080 hello-2:latest
@@ -139,30 +139,30 @@ docker run --name hello-2 -d -p 43991:8080 hello-2:latest
 为了将外部服务注册到 istio 中，需要定义 `ServiceEntry`
 
 ```sh
-kubectl apply -f external/hello-1-serviceEntry.yaml -n hello-page
-kubectl apply -f external/hello-2-serviceEntry.yaml -n hello-page
+kubectl apply -f yaml/grayscale-release/external/hello-1-serviceEntry.yaml -n hello-page
+kubectl apply -f yaml/grayscale-release/external/hello-2-serviceEntry.yaml -n hello-page
 ```
 
 接着定义一个 `VirtualService` 来进行流量控制，将 90% 的流量分配给 hello-1，将 10% 的流量分配给 hello-2
 
 ```sh
-kubectl apply -f external/virtual-service-v2-10.yaml -n hello-page
+kubectl apply -f yaml/grayscale-release/external/virtual-service-v2-10.yaml -n hello-page
 ```
 
 使用下面命名根据 `user:test` 请求头进行流量控制
 
 ```sh
-kubectl apply -f external/virtual-service-test-v1.yaml -n hello-page
+kubectl apply -f yaml/grayscale-release/external/virtual-service-test-v1.yaml -n hello-page
 ```
 
 ##### 环境清理
 
 ```sh
-kubectl delete -f external/hello-1-serviceEntry.yaml -n hello-page
-kubectl delete -f external/hello-2-serviceEntry.yaml -n hello-page
-kubectl delete -f external/virtual-service-test-v1.yaml -n hello-page
+kubectl delete -f yaml/grayscale-release/external/hello-1-serviceEntry.yaml -n hello-page
+kubectl delete -f yaml/grayscale-release/external/hello-2-serviceEntry.yaml -n hello-page
+kubectl delete -f yaml/grayscale-release/external/virtual-service-test-v1.yaml -n hello-page
 
-kubectl delete -f hello-page.yaml -n hello-page
+kubectl delete -f yaml/grayscale-release/hello-page.yaml -n hello-page
 kubectl delete ns hello-page
 
 docker rm -f hello-1
@@ -171,5 +171,4 @@ docker rm -f hello-2
 
 ## 附录
 
-src 目录下为构建 hello-page, hello-1, hello-2 镜像的源码
-docker 目录下为已经构建好的 docker 镜像
+src/garyscale-release 目录下为构建 hello-page, hello-1, hello-2 镜像的源码

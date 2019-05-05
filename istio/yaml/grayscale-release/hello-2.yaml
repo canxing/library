@@ -1,0 +1,37 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hello
+  labels:
+    app: hello
+    service: hello
+spec:
+  ports:
+  - port: 8080
+    targetPort: 8080
+    name: http
+  selector:
+    app: hello
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: hello-2
+  labels:
+    app: hello
+    version: v2
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: hello
+        version: v2
+    spec:
+      containers:
+      - name: hello
+        image: canxing/hello-2:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080

@@ -1,0 +1,17 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: ServiceEntry
+metadata:
+  name: hello-1
+spec:
+  hosts:
+  - hello.com
+  addresses:
+  - 10.10.2.114/24
+  ports:
+  - number: 43990
+    name: http
+    protocol: HTTP
+  location: MESH_INTERNAL
+  resolution: STATIC
+  endpoints:
+  - address: 10.10.2.114
