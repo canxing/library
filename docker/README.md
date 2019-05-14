@@ -246,7 +246,17 @@ $ docker volume inspect my_vol
 ]
 ```
 
-查看 `docker volume create --hellp` 之后发现数据卷创建的位置似乎不能改变。
+数据卷的位置不能自定义，数据卷存放在 Docker 目录下的 volumes 文件夹中。Docker 目录下存放了 Docker 镜像，数据卷等，可以通过修改 Docker 目录的方式转移数据卷的位置。
+
+在 `/etc/docker/daemon.json` 文件夹中写入下面内容
+
+```json
+{
+  "graph": "/home/canxing/.docker/registry"
+}
+```
+
+graph 对应的路径就是 Docker 目录对应的路径，可以修改为实际路径。修改之后，使用 `systemctl restart docker` 重启 Docker。
 
 删除数据卷
 
