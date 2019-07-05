@@ -75,10 +75,12 @@ swapoff -a
 yum install -y kubeadm
 ```
 
+>> 这里默认安装的是最新版本的 kubeadm 如果对安装版本有要求，需要指定
+
 配置 kubelet
 
 ```sh
-systemctl enabled kubelet
+systemctl enable kubelet
 systemctl start kubelet
 ```
 
@@ -121,7 +123,7 @@ done
 安装完成后，使用下面命令初始化
 
 ```sh
-kubeadmin init --pod-network-cidr=10.244.0.0/16 --ignore-preflight-errors=NumCPU
+kubeadm init --pod-network-cidr=10.244.0.0/16 --ignore-preflight-errors=NumCPU
 ```
 
 由于 Centos 只有 1 核，因此需要 `--ignore-preflight-errors` 参数来忽略错误
@@ -150,7 +152,7 @@ kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/master/a
 默认情况下 kubernetes dashboard 使用集群端口，如果需要在外部访问，需要将 kuberntes dashboard 服务的类型改为 NodePort
 
 ```sh
-kubectl edit svc kuberntes-dashboard -n kube-system
+kubectl edit svc kubernetes-dashboard -n kube-system
 ```
 
 默认情况下，kuberntes dashboard 使用 https 协议，而且访问 kubernetes dashboard 需要有 Token 或者 kubeconfig 文件
