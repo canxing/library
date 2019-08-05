@@ -63,10 +63,25 @@ modprobe br_netfilter
 sysctl -p /etc/sysctl.d/k8s.conf
 ```
 
-关闭交换空间
+关闭 SELinux
+
+```sh
+setenforce 0
+sed -i --follow-symlinks 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/sysconfig/selinux
+```
+
+关闭防火墙
+
+```sh
+systemctl stop firewalld
+systemctl disable firewalld
+```
+
+临时关闭交换空间
 
 ```sh
 swapoff -a
+sed -ri "s/.*.swap.*/#&/" /etc/fstab
 ```
 
 4. 安装 kubeadm
@@ -80,6 +95,9 @@ yum install -y kubeadm
 配置 kubelet
 
 ```sh
+# 配置 kubelet 使用的 cgroup，这个要和 Docker 的 cgroup 一致
+sed -i '0,/"$/s/"$/ --cgroup-driver=cgroupfs"/' /usr/lib/systemd/system/kubelet.service.d/10-kubeadm.conf
+systemctl daemon-reload
 systemctl enable kubelet
 systemctl start kubelet
 ```
@@ -126,7 +144,21 @@ done
 kubeadm init --pod-network-cidr=10.244.0.0/16 --ignore-preflight-errors=NumCPU
 ```
 
+> kubernetes 从 1.10 开始没有开放 10255 端口用于监控，如果需要监控需要配置
+> 
+>   echo 'readOnlyPort: 10255' >> /var/lib/kubelet/config.yaml
+>  systemctl restart kubelet
+
+
 由于 Centos 只有 1 核，因此需要 `--ignore-preflight-errors` 参数来忽略错误
+
+按照要求执行命令
+
+```sh
+mkdir -p $HOME/.kube
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+```
 
 初始化完成之后，需要安装网络插件
 
@@ -146,7 +178,7 @@ kubectl taint nodes <master-node-name> node-role.kubernetes.io/master:NoSchedule
 如果需要 UI 界面，需要下面命令安装 kubernest dashboard
 
 ```sh
-kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/master/aio/deploy/recommended/kubernetes-dashboard.yaml
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v1.10.1/src/deploy/recommended/kubernetes-dashboard.yaml
 ```
 
 默认情况下 kubernetes dashboard 使用集群端口，如果需要在外部访问，需要将 kuberntes dashboard 服务的类型改为 NodePort
@@ -157,7 +189,7 @@ kubectl edit svc kubernetes-dashboard -n kube-system
 
 默认情况下，kuberntes dashboard 使用 https 协议，而且访问 kubernetes dashboard 需要有 Token 或者 kubeconfig 文件
 
-使用 Token 方式访问 UI，需要先创建 ServiceAccount，然后将账户和 admin 角色绑定，文件内容如下:
+使用 Token 方式访问 UI，需要先创建 ServiceAccount，然后将账户和 admin 角色绑定，创建 kubernetes-admin.yaml 文件，写入下面内容
 
 ```yaml
 apiVersion: v1
