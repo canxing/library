@@ -1,5 +1,7 @@
 # Centos 使用 kubeadm 搭建单节点 kubernetes 环境
 
+> 文档不再维护，这里[kuberadm 部署 kubernetes](./install-kubernetes.md)可以看最新安装文档
+
 安装的 kubernetes 环境为 1.14
 
 ## 安装环境

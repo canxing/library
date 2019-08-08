@@ -1,4 +1,4 @@
-# kubeadm 单机部署 kubernetes
+# kubeadm 部署 kubernetes
 
 ## 前提条件
 
