@@ -48,19 +48,25 @@ Ubuntu Linux 或者 CentOS
     ```
 
 2. 系统配置
-    1. 关闭交换空间
+    1. 关闭交换空间（如果有）
     ```sh
     swapoff -a
     sed -ri "s/.*.swap.*/#&/" /etc/fstab
     ```
 
-    2. 禁用 SELinux
+    2. 禁用 SELinux（如果有）
     ```sh
     setenforce 0
     sed -i --follow-symlinks 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/sysconfig/selinux
     ```
 
-    3. 设置内核参数
+    3. 关闭防火墙（如果有）
+    ```sh
+    systemctl stop firewalld
+    systemctl disable firewalld
+    ```
+
+    4. 设置内核参数
     ```sh
     echo 'net.bridge.bridge-nf-call-ip6tables = 1' >> /etc/sysctl.d/k8s.conf
     echo 'net.bridge.bridge-nf-call-iptables = 1' >> /etc/sysctl.d/k8s.conf
@@ -69,7 +75,7 @@ Ubuntu Linux 或者 CentOS
     sysctl -p /etc/sysctl.d/k8s.conf
     ```
 
-    4. 设置 hostname （单机可选，多节点需要设置防止冲突）
+    5. 设置 hostname （单机可选，多节点需要设置防止冲突）
     ```sh
     hostnamectl set-hostname master
     ```
