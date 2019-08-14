@@ -83,6 +83,8 @@ Ubuntu Linux 或者 CentOS
 
 3. 安装 Docker
 
+    > [kubernetes github](https://github.com/kubernetes/kubernetes/) 上的 CHANGELOG 记录了 kubernetes 对 Docker 版本的要求，建议选好对应的 kubernetes 版本再安装 Docker。例如如果希望安装 Kubernetes 1.15，那么查看 [CHANGELOG-1.15.md](https://github.com/kubernetes/kubernetes/blob/master/CHANGELOG-1.15.md)，可以查看到 Kuberentes 1.15 对 Docker 的最低版本要求是 1.13.1。
+
     CentOS 安装
     ```sh
     yum install -y docker-ce # 安装最新版
@@ -112,7 +114,7 @@ Ubuntu Linux 或者 CentOS
     CentOS 安装
     ```sh
     yum install -y kubeadm # 安装最新的 kubeadm
-    yum install -y kubeadm-1.14.3-0# 安装 18.06.3 版本
+    yum install -y kubeadm-1.14.1-0 # 安装 kubeadm 1.14.1
     ```
 
     > 使用 `yum list all kubeadm --showduplicates | sort -r` 查看可安装的版本
@@ -120,7 +122,7 @@ Ubuntu Linux 或者 CentOS
     Ubuntu 安装
     ```sh
     apt-get install -y kubeadm # 安装最新的 kubeadm
-    apt-get install -y kubeadm=1.14.4-00 # 安装 kubeadm 1.14.4
+    apt-get install -y kubeadm=1.14.1-00 # 安装 kubeadm 1.14.1
     ```
     > 使用 `apt-cache madison kubeadm ` 查看可安装的版本
 
@@ -169,7 +171,7 @@ Ubuntu Linux 或者 CentOS
     done
     ```
 
-    安装完成后，使用下面命令初始化
+8. 主节点配置
 
     ```sh
     kubeadm init --pod-network-cidr=192.168.0.0/16
@@ -178,10 +180,13 @@ Ubuntu Linux 或者 CentOS
     这里使用的网络方案为 Calico 因此 `--pod-network-cidr` 等于  `192.168.0.0/16` 更多网络方案点击[这里](https://kubernetes.io/docs/concepts/cluster-administration/addons/)和[这里](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/)
 
     > 如果计算机 CPU 只有一个，需要加参数来忽略错误 --ignore-preflight-errors=NumCPU
+    >
     > kubernetes 从 1.10 开始没有开放 10255 端口用于监控，如果需要监控需要配置
     > 
-    >   `echo 'readOnlyPort: 10255' >> /var/lib/kubelet/config.yaml`
-    >   `systemctl restart kubelet`
+    >   ```sh
+    >   echo 'readOnlyPort: 10255' >> /var/lib/kubelet/config.yaml
+    >   systemctl restart kubelet
+    >   ```
 
     按照 kubeadm 的要求设置
 
@@ -198,7 +203,7 @@ Ubuntu Linux 或者 CentOS
     kubectl apply -f https://docs.projectcalico.org/v3.3/getting-started/kubernetes/installation/hosted/kubernetes-datastore/calico-networking/1.7/calico.yaml
     ```
 
-    master 节点参与调度（可选），单节点必选
+    master 节点参与调度（多节点可选，单节点必选）
 
     kubeadm 安装的 kubernetes 环境默认情况下 Master 节点不会参与调度，想要让 Master 节点参与调度需要使用下面命令
   
@@ -251,7 +256,7 @@ Ubuntu Linux 或者 CentOS
     ```sh
     kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | grep admin-user | awk '{print $1}') | grep token:
     ```
-8. 加入集群（可选）
+9. 加入集群（可选）
 
     将一个节点加入集群需要进行上述 1 到 7 步，之后使用下面命令将节点添加到集群
     ```sh
@@ -262,7 +267,7 @@ Ubuntu Linux 或者 CentOS
 
     `<join-token>` 为加入 Kubernetes 集群所需要的 token，可以通过 `kubeadm token list` 查看，如果没有，可以通过 `kubeadm token create` 创建 token
 
-9. 额外配置（可选）
+10. 额外配置（可选）
 
     上述安装配置无法对集权状态进行监控，如需监控功能需要将 10255 端口添加到配置文件，设置方式如下。配置文件在 `kubeadm init` 或 `kubeadm join` 命令生效后生成，使用 `kubeadm reset` 之后该文件会被删除。
 
