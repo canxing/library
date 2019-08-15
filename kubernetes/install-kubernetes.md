@@ -1,5 +1,11 @@
 # kubeadm 部署 kubernetes
 
++ [前提条件](#前提条件)
++ [安装步骤](#安装步骤)
++ [多网卡问题](#多网卡问题)
+
+> 多块网卡安装 kubernetes 请先看[多网卡问题](#多网卡问题)
+
 ## 前提条件
 
 Ubuntu Linux 或者 CentOS
@@ -275,3 +281,45 @@ Ubuntu Linux 或者 CentOS
     echo 'readOnlyPort: 10255' >> /var/lib/kubelet/config.yaml
     systemctl restart kubelet
     ```
+
+## 多网卡问题
+
+> 实验环境最好不要使用多网卡机器，容易出现各种问题
+
+1. 安装 kubernetes
+
+    在 `安装步骤-> 8. 主节点配置`中使用 `kubeadm init` 来安装 kubernetes，在安装过程中，kubeadm 会自动寻找可用的网卡做为 kubernetes 的服务 ip。如果计算机存在多张网卡，那么有可能选择的网卡并不是预期的网卡。为了解决这个问题，kubeadm 提供了 `--apiserver-advertise-address` 参数来指定网卡的 ip，完整命令如下:
+
+    ```sh
+    kubeadm init --apiserver-advertise-address <targetIP> --pod-network-cidr=192.168.0.0/16
+    ```
+
+    >  --pod-network-cidr=192.168.0.0/16 为 calico 网络插件指定的网段
+
+    对于想要加入 kubernetes 集群的节点来，如果有多网卡，也可以使用该参数来指定加入的网卡
+
+    ```sh
+    kubeadm join <k8s-master-ip> --token <token> --apiserver-advertise-address <targetIP>
+    ```
+
+2. 网络插件选择网卡
+
+    除了 kubernetes 以外，网络插件也需要选择网卡来保证节点间容器的通信，不同的网络插件对于网卡的选择不同，具体请查看实际网络插件的文档。这里以 `calico` 网络插件为例。[calico 官方文档](https://docs.projectcalico.org/v3.7/reference/node/configuration#ip-autodetection-methods)
+
+    calico 对于网卡的选择使用的默认策略是 `first-found`，也就是第一块找到的可用的网卡，如果每个节点选择的网卡对应的 ip 不在同一网段，那么很可能出现某一节点上的 pod ping 不通另一节点上的 pod。
+
+    对于这种情况，可以根据不同方式来自行选择网卡，这里使用的网卡选择策略是 `interface`，根据正则表达式来选择网卡，不同的网卡选择策略还是看[calico 官方文档](https://docs.projectcalico.org/v3.7/reference/node/configuration#ip-autodetection-methods)。
+
+    在 `kube-system` 命令空间下，找到 `守护进程集(daemonse) calico-node`，其中包含两个 container，为 `calico-node` container 增加两个环境变量 `IP_AUTODETECTION_METHOD` 和 `IP6_AUTODETECTION_METHOD`，值为 `interface=eth0`。保存即可，和下面类似
+
+    ```yaml
+    env:
+    ....
+    - name: IP_AUTODETECTION_METHOD
+      value: interface=eth0
+    - name: IP6_AUTODETECTION_METHOD
+      value: interface=eth0
+    ....
+    ```
+
+    这个环境变量的意思是 calico 选择网卡，根据正则表达式去匹配每个节点上网卡名称，找到的第一个网卡就作为 pod 通信的网卡。这里要选择的网卡就是包含 `eht0` 的网卡。
